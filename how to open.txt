@@ -1,0 +1,6 @@
+1. activate the environment
+
+.\fyp\Scripts\activate
+
+2. 
+

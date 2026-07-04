@@ -1,0 +1,14 @@
+[client]
+showSidebarNavigation = false
+
+[theme]
+# Force Streamlit to use a light base theme and match the app palette.
+base = "light"
+
+# Brand colors
+primaryColor = "#6B21A8"
+
+# Light mode surface colors
+backgroundColor = "#F3E8FF"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1A1A1A"

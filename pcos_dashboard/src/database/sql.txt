@@ -1,0 +1,188 @@
+-- 1. USERS & ACCESS CONTROL
+CREATE TABLE roles (
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_id INT NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    full_name VARCHAR(100),
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    age INT DEFAULT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES roles(role_id) ON UPDATE CASCADE
+);
+
+-- 2. DYNAMIC QUESTIONNAIRE
+CREATE TABLE questionnaires (
+    questionnaire_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE questions (
+    question_id INT AUTO_INCREMENT PRIMARY KEY,
+    questionnaire_id INT NOT NULL,
+    section_name VARCHAR(100), -- e.g., 'general_information', 'physical_symptoms'
+    question_text TEXT NOT NULL,
+    question_type ENUM('radio', 'selectbox', 'text', 'numeric', 'calculated') NOT NULL,
+    question_order INT NOT NULL,
+    
+    -- ML & Logic Separation
+    is_ml_feature BOOLEAN DEFAULT FALSE,
+    feature_name VARCHAR(100), -- Matches column name in your ML model (e.g., 'weight (kg)')
+    is_calculated BOOLEAN DEFAULT FALSE, -- TRUE for BMI and Waist-Hip Ratio
+    
+    -- Follow-up Logic (For your "Irregular" cycle questions)
+    parent_question_id INT NULL, 
+    follow_up_condition VARCHAR(255) NULL, -- e.g., 'Irregular'
+    
+    is_required BOOLEAN DEFAULT TRUE,
+    min_value FLOAT NULL,
+    max_value FLOAT NULL,
+    FOREIGN KEY (questionnaire_id) REFERENCES questionnaires(questionnaire_id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_question_id) REFERENCES questions(question_id) ON DELETE SET NULL
+);
+
+CREATE TABLE options (
+    option_id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,
+    option_text VARCHAR(255),
+    option_value FLOAT, -- The numeric value passed to the ML model (e.g., Yes=1, No=0)
+    FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE
+);
+
+-- 3. SUBMISSIONS & PREDICTIONS
+CREATE TABLE submissions (
+    submission_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    questionnaire_id INT NOT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (questionnaire_id) REFERENCES questionnaires(questionnaire_id)
+);
+
+CREATE TABLE answers (
+    answer_id INT AUTO_INCREMENT PRIMARY KEY,
+    submission_id INT NOT NULL,
+    question_id INT NOT NULL,
+    
+    -- We need multiple value columns to handle different input types from your UI
+    selected_option_id INT NULL,
+    numeric_value FLOAT NULL,
+    text_value TEXT NULL, -- Added to support your text_input fields!
+    
+    FOREIGN KEY (submission_id) REFERENCES submissions(submission_id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(question_id),
+    FOREIGN KEY (selected_option_id) REFERENCES options(option_id)
+);
+
+-- 4. ML TRACKING (Unified)
+CREATE TABLE ml_models (
+    model_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    version VARCHAR(20) DEFAULT '1.0.0',
+    is_active BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE predictions (
+    prediction_id INT AUTO_INCREMENT PRIMARY KEY,
+    submission_id INT NOT NULL,
+    user_id INT NOT NULL, 
+    model_id INT NOT NULL,
+    risk_score FLOAT, 
+    risk_level VARCHAR(50), 
+    shap_explanation JSON, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (submission_id) REFERENCES submissions(submission_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (model_id) REFERENCES ml_models(model_id)
+);
+
+-- 5. LIFESTYLE
+CREATE TABLE journal_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    log_date DATE NOT NULL,
+    entry_text TEXT,
+    mood INT,
+    UNIQUE KEY unique_user_date (user_id, log_date),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE cycle_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    log_date DATE NOT NULL,
+    period VARCHAR(20) DEFAULT 'Nothing',
+    mood VARCHAR(20) DEFAULT 'Neutral',
+    symptoms TEXT,
+    cervical_fluid TEXT
+    medication TEXT,
+    blood_pressure VARCHAR(20),
+    sugar_level VARCHAR(20),
+    notes TEXT,
+    UNIQUE KEY unique_user_date (user_id, log_date),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE saved_articles (
+    saved_id INT(11) NOT NULL AUTO_INCREMENT,
+    user_id INT(11) NOT NULL,
+    article_title VARCHAR(500) NOT NULL,
+    article_url VARCHAR(500) NOT NULL,
+    authors VARCHAR(500) DEFAULT NULL,
+    publication_date VARCHAR(50) DEFAULT NULL,
+    saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (saved_id),
+    INDEX (user_id),
+    UNIQUE INDEX unique_user_article (user_id, article_url)
+);
+
+CREATE TABLE user_stats (
+    user_id INT PRIMARY KEY,
+    streak INT DEFAULT 0,
+    total_vitality INT DEFAULT 0,
+    last_login DATE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE quest_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    quest_name VARCHAR(255) NOT NULL,
+    points_earned INT NOT NULL DEFAULT 0,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE doctor_patients (
+    link_id INT(11) NOT NULL AUTO_INCREMENT,
+    doctor_id INT(11) NOT NULL,
+    patient_id INT(11) NOT NULL,
+    status VARCHAR(50) DEFAULT 'connected',
+    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (link_id),
+    FOREIGN KEY (doctor_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (patient_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE clinical_notes (
+    note_id INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_id INT NOT NULL,
+    patient_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (patient_id) REFERENCES users(user_id) ON DELETE CASCADE
+);

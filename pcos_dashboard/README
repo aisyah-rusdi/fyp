@@ -1,0 +1,82 @@
+# 🌸 PCOS Dashboard
+
+A comprehensive, role-based web application built with Streamlit and MariaDB to help patients, healthcare professionals, and 
+administrators track, monitor, and analyze Polycystic Ovary Syndrome (PCOS) symptoms and risk factors using Machine Learning.
+
+## ✨ Key Features
+
+This platform is divided into three distinct, secure portals based on the user's role:
+
+ 👤 For Patients (Role 1):
+     Daily Journal: Log symptoms, lifestyle changes, and hormonal cycles.
+     ML Analysis: Get AI-driven insights and risk predictions based on questionnaire data.
+     Personalized Resources: Receive curated educational content tailored to specific health needs.
+ 🩺 For Healthcare Professionals (Role 2):
+     Patient Connection: Securely link with patients using their email.
+     Health Monitoring: View patient journals, questionnaire results, and ML risk assessments in real-time.
+ ⚙️ For Administrators (Role 3):
+     System Analytics: Monitor platform health, user growth, and overall ML model confidence.
+     User Management: Approve, edit, or remove users and export database backups.
+
+---
+
+## 🛠️ Tech Stack
+
+ Frontend: Streamlit, HTML/CSS (Custom UI Components)
+ Backend: Python 3
+ Database: MariaDB (SQL)
+ Machine Learning: Scikit-Learn, XGBoost, Imbalanced-Learn
+ Data Visualization: Pandas, Plotly, Matplotlib
+
+---
+
+## 📂 Project Structure
+
+```text
+pcos_dashboard/
+├── .env                    # Environment variables 
+├── .streamlit/ 
+│   ├── secrets.toml     
+│   └── config.toml  
+│
+├── README.md               # Project documentation
+└── src/                      
+    ├── app.py              # Application Entry Point (Login & Signup)
+    ├── ml.py               # Machine Learning models and pipelines
+    ├── requirements.txt    # Python dependencies  
+    │
+    ├── assets/             # Static assets
+    │   └── style.css       # Global custom UI styling
+    │
+    ├── database/           # Database Layer
+    │   ├── connection.py   # MariaDB connection handler
+    │   └── queries.py      # Prepared SQL queries
+    │
+    ├── utils/              # Helper Functions
+    │   ├── auth_tools.py   # Session state, password hashing, validation
+    │   ├── email_tool.py   # OTP and notification emails
+    │   ├── questions.py    # questionaire questions
+    │   └── ui_helpers.py   # CSS loaders and repeated UI logic
+    │
+    ├── components/         # Reusable UI Blocks
+    │   ├── charts.py       # Plotly chart generators
+    │   ├── metrics.py      # KPI metric cards
+    │   ├── sidebar.py      # Role-based navigation
+    │   └── header.py       # App header / branding
+    │
+    └── pages/              # Streamlit Application Pages
+        ├── 01_profile.py   
+        ├── 02_dashboard.py 
+        ├── 03_questionnaire.py 
+        ├── 04_resources.py 
+        │
+        ├── 11_user_journal.py            # Patient Tools
+        ├── 12_user_daily_quest.py 
+        ├── 13_user_personal_resources.py 
+        │
+        ├── 21_pro_connect.py             # Professional Tools
+        ├── 22_pro_monitor.py 
+        ├── 23_pro_details.py 
+        │
+        ├── 31_admin_dashboard.py         # Admin Tools
+        └── 32_user_management.py

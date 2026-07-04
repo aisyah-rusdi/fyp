@@ -1,0 +1,25 @@
+# .\fyp\Scripts\activate
+# streamlit run app.py
+
+# --- Core Web App ---
+streamlit
+streamlit-cookies-controller
+python-dotenv
+requests
+
+# --- Database & Authentication ---
+mariadb
+bcrypt
+firebase-admin
+
+# --- Data Manipulation & Visualization ---
+pandas
+numpy
+plotly
+matplotlib
+
+# --- Machine Learning ---
+scikit-learn
+imbalanced-learn
+xgboost
+scikit-optimize
