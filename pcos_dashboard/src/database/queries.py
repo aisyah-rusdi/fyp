@@ -18,7 +18,7 @@ GET_USER_NAME_BY_EMAIL = """
 
 CREATE_USER = """
     INSERT INTO users (role_id, username, full_name, email, password_hash, license_number, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
 """
 
 GET_ALL_USERS_FOR_ADMIN = """

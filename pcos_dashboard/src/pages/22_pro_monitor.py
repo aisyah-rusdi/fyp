@@ -1,5 +1,5 @@
 import streamlit as st
-import mariadb
+import pymysql
 import pandas as pd
 from utils.ui_helpers import load_css
 from components.header import render_header
@@ -57,10 +57,10 @@ def run_query(sql, params=()):
     if not conn:
         return []
     try:
-        cur = conn.cursor(dictionary=True)
+        cur = conn.cursor()
         cur.execute(sql, params)
         return cur.fetchall()
-    except mariadb.Error as e:
+    except pymysql.MySQLError as e:
         st.error(f"Database error: {e}")
         return []
     finally:
@@ -77,7 +77,7 @@ def run_write(query, params):
             cur = conn.cursor()
             cur.execute(query, params)
             conn.commit()
-        except mariadb.Error as e:
+        except pymysql.MySQLError as e:
             st.error(f"Database error: {e}")
         finally:
             conn.close()

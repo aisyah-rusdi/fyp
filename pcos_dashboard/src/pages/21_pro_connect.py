@@ -1,5 +1,5 @@
 import streamlit as st
-import mariadb
+import pymysql
 import pandas as pd
 import math
 from utils.ui_helpers import load_css
@@ -37,7 +37,7 @@ def fetch_my_patients():
     patients = []
     if conn:
         try:
-            cur = conn.cursor(dictionary=True)
+            cur = conn.cursor()
             cur.execute(GET_DOCTOR_PATIENTS, (user_id,))
             patients = cur.fetchall()
         finally:
@@ -81,7 +81,7 @@ if do_search and search_term:
     conn = get_connection()
     if conn:
         try:
-            cur = conn.cursor(dictionary=True)
+            cur = conn.cursor()
             # We pass search_term twice because the SQL query will check both columns
             cur.execute(SEARCH_PATIENT_BY_EMAIL_OR_USERNAME, (search_term, search_term))
             found = cur.fetchone()

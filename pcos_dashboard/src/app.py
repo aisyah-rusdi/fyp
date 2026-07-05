@@ -3,7 +3,7 @@
 import streamlit as st
 import time
 import os
-import mariadb
+import pymysql
 import random
 from streamlit_cookies_controller import CookieController
 
@@ -50,7 +50,11 @@ if not st.session_state.get('logged_in'):
                 result = cur.fetchone()
                 
                 if result:
-                    user_id, stored_hash, role_id, full_name, status = result
+                    user_id = result['user_id']
+                    stored_hash = result['password_hash']
+                    role_id = result['role_id']
+                    full_name = result['full_name']
+                    status = result['status']
                     if status == 'active' or (role_id != 2 and status != 'pending'):
                         user_data = {
                             'user_id': user_id,
@@ -65,7 +69,7 @@ if not st.session_state.get('logged_in'):
                             st.switch_page("pages/31_admin_dashboard.py")
                         else:
                             st.switch_page("pages/02_dashboard.py")
-            except mariadb.Error as e:
+            except pymysql.MySQLError as e:
                 pass 
             finally:
                 conn.close()
@@ -79,7 +83,7 @@ def trigger_verification(email_input):
         st.error("Database connection failed.")
         return None
         
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     try:
         # 1. Try to find the user in the database
@@ -98,7 +102,7 @@ def trigger_verification(email_input):
             st.error("Failed to send email. Please check your network or SMTP settings.")
             return None
             
-    except mariadb.Error as e:
+    except pymysql.MySQLError as e:
         st.error(f"Database error: {e}")
         return None
     finally:
@@ -179,7 +183,11 @@ with card_container:
                                 result = cur.fetchone()
 
                                 if result:
-                                    user_id, stored_hash, role_id, full_name, status = result
+                                    user_id = result['user_id']
+                                    stored_hash = result['password_hash']
+                                    role_id = result['role_id']
+                                    full_name = result['full_name']
+                                    status = result['status']
                                     
                                     if role_id == 2 and status != 'active':
                                         st.error("Your professional account is pending Admin approval. Please check back later.")
@@ -213,7 +221,7 @@ with card_container:
                                         st.error("Invalid credentials")
                                 else:
                                     st.error("User not found.")
-                            except mariadb.Error as e:
+                            except pymysql.MySQLError as e:
                                 st.error(f"Database error: {e}")
                             finally:
                                 conn.close()
@@ -281,7 +289,7 @@ with card_container:
                                     time.sleep(2)
                                     st.session_state['page_mode'] = 'login'
                                     st.rerun()
-                                except mariadb.Error as e:
+                                except pymysql.MySQLError as e:
                                     st.error(f"Failed to update password: {e}")
                                 finally:
                                     conn.close()
@@ -347,7 +355,7 @@ with card_container:
                                 time.sleep(2)
                                 st.session_state['page_mode'] = 'login'
                                 st.rerun()
-                            except mariadb.IntegrityError:
+                            except pymysql.IntegrityError:
                                 st.error("Username or Email already exists")
                             finally:
                                 conn.close()

@@ -162,7 +162,6 @@ def go_back():
 def save_assessment_to_db(user_answers, prediction, probability, user_id):
     """Connects to MariaDB and saves the submission, answers, and prediction."""
     try:
-        # 1. Connect to Database
         conn = get_connection() 
         cursor = conn.cursor()
 
@@ -171,15 +170,15 @@ def save_assessment_to_db(user_answers, prediction, probability, user_id):
         questionnaire_row = cursor.fetchone()
         if not questionnaire_row:
             raise Exception("No active questionnaire found in the database!")
-        questionnaire_id = questionnaire_row[0]
+        questionnaire_id = questionnaire_row['questionnaire_id']
 
-        # 3. Create a new submission record using the real session user_id
+        # 3. Create a new submission record
         cursor.execute(INSERT_SUBMISSION, (user_id, questionnaire_id))
-        submission_id = cursor.lastrowid  # FIX: capture the new submission ID
+        submission_id = cursor.lastrowid
 
-        # 4. Build the translation dictionary (question text → question DB id)
+        # 4. Build the translation dictionary
         cursor.execute("SELECT question_id, question_text FROM questions WHERE questionnaire_id = %s", (questionnaire_id,))
-        q_mapping = {row[1]: row[0] for row in cursor.fetchall()}
+        q_mapping = {row['question_text']: row['question_id'] for row in cursor.fetchall()}
 
         # 5. Loop through answers and save each one
         for q_text, answer_val in user_answers.items():
@@ -203,19 +202,18 @@ def save_assessment_to_db(user_answers, prediction, probability, user_id):
                 )
                 opt_row = cursor.fetchone()
                 if opt_row:
-                    selected_option_id = opt_row[0]
+                    selected_option_id = opt_row['option_id']
                 
             cursor.execute(INSERT_ANSWER, (submission_id, q_id, selected_option_id, txt_val, num_val))
 
         # 6. Save the prediction
         cursor.execute(GET_ACTIVE_ML_MODEL)
         model_row = cursor.fetchone()
-        model_id = model_row[0] if model_row else 1
+        model_id = model_row['model_id'] if model_row else 1
 
         risk_level = "High Risk" if prediction == 1 else "Low Risk"
         cursor.execute(INSERT_PREDICTION, (submission_id, user_id, model_id, float(probability), risk_level))
 
-        # 7. Commit everything
         conn.commit()
         print("Successfully saved submission, answers, and prediction to database!")
 
@@ -228,13 +226,6 @@ def save_assessment_to_db(user_answers, prediction, probability, user_id):
         if 'conn' in locals() and conn:
             if hasattr(conn, 'open') and conn.open:
                 conn.close()
-            elif hasattr(conn, 'is_connected') and conn.is_connected():
-                conn.close()
-            else:
-                try:
-                    conn.close()
-                except:
-                    pass
 
 
 def process_and_predict():

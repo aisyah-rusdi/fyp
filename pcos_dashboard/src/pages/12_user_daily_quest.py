@@ -26,7 +26,7 @@ def _fetch_stats(user_id):
     if conn:
         try:
             # dictionary=True allows us to use stats['streak'] later
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor()
             cursor.execute(GET_USER_VITALITY_STATS, (user_id,))
             return cursor.fetchone()
         except Exception as e:

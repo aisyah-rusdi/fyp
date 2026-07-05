@@ -45,7 +45,7 @@ def import_csv_data():
     print("Connecting to database...")
     conn = get_connection()
     # Ensure dictionary=True so we can access columns by name
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     try:
         # ==========================================

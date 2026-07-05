@@ -1,5 +1,5 @@
 import streamlit as st
-import mariadb
+import pymysql
 import pandas as pd
 
 from utils.ui_helpers import load_css
@@ -58,7 +58,7 @@ def fetch_admin_stats():
     conn = get_connection()
     if conn:
         try:
-            cur = conn.cursor(dictionary=True)
+            cur = conn.cursor()
             
             # 1. Users by Role (Assuming 1=Patient, 2=Doctor)
             cur.execute(GET_TOTAL_USERS_BY_ROLE)
@@ -91,7 +91,7 @@ def fetch_admin_stats():
             if growth:
                 stats["user_growth"] = growth
                 
-        except mariadb.Error as e:
+        except pymysql.MySQLError as e:
             st.error(f"Database error: {e}")
         finally:
             conn.close()

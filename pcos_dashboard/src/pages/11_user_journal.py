@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import mariadb
+import pymysql
 import calendar
 import time
 from datetime import date, timedelta, datetime
@@ -63,7 +63,7 @@ def get_monthly_data(user_id, year, month):
     conn = get_connection()
     if conn:
         try:
-            cur = conn.cursor(dictionary=True)
+            cur = conn.cursor()
 
             cur.execute(GET_MONTHLY_CYCLES, (user_id, year, month))
             for row in cur.fetchall():
@@ -98,7 +98,7 @@ def get_monthly_data(user_id, year, month):
                     'created_at': row.get('created_at')
                 })
 
-        except mariadb.Error as e:
+        except pymysql.MySQLError as e:
             st.error(f"Error reading DB: {e}")
         finally:
             conn.close()
@@ -292,7 +292,7 @@ with tab_cycle:
                             time.sleep(0.5)
                             st.session_state[edit_key] = True
                             st.rerun()
-                        except mariadb.Error as e:
+                        except pymysql.MySQLError as e:
                             st.error(f"Error: {e}")
                         finally:
                             conn.close()
@@ -410,7 +410,7 @@ with tab_cycle:
                         st.success("Cycle data saved!")
                         time.sleep(0.5)
                         st.session_state[edit_key] = False
-                    except mariadb.Error as e:
+                    except pymysql.MySQLError as e:
                         st.error(f"Error: {e}")
                     finally:
                         conn.close()
@@ -574,7 +574,7 @@ with tab_cycle:
                                 sugar_val, overall_notes or ""
                             )
                             cur.execute(UPSERT_CYCLE, insert_data + update_data)
-                        except mariadb.Error as e:
+                        except pymysql.MySQLError as e:
                             st.error(f"Error saving {day_date}: {e}")
                             errors += 1
 
@@ -585,7 +585,7 @@ with tab_cycle:
                         st.warning(f"Saved with {errors} error(s). Check above.")
                     time.sleep(0.5)
 
-                except mariadb.Error as e:
+                except pymysql.MySQLError as e:
                     st.error(f"Database error: {e}")
                 finally:
                     conn.close()
@@ -626,7 +626,7 @@ with tab_journal:
                                 conn.commit()
                                 st.success("Entry deleted!")
                                 time.sleep(0.5)
-                            except mariadb.Error as e:
+                            except pymysql.MySQLError as e:
                                 st.error(f"Database Error: {e}")
                             finally:
                                 conn.close()
@@ -652,7 +652,7 @@ with tab_journal:
                     st.success("New journal entry added!")
                     time.sleep(0.5)
                     st.rerun()
-                except mariadb.Error as e:
+                except pymysql.MySQLError as e:
                     st.error(f"Database Error: {e}")
                 finally:
                     conn.close()

@@ -1,5 +1,5 @@
 import streamlit as st
-import mariadb
+import pymysql
 import base64
 import os
 from utils.ui_helpers import load_css
@@ -34,10 +34,10 @@ def get_user_profile(user_id):
     if not conn:
         return None
     try:
-        cur = conn.cursor(dictionary=True) 
+        cur = conn.cursor() 
         cur.execute(GET_USER_PROFILE_BY_ID, (user_id,))
         return cur.fetchone()
-    except mariadb.Error as e:
+    except pymysql.MySQLError as e:
         st.error(f"Error fetching profile: {e}")
         return None
     finally:

@@ -12,6 +12,7 @@ def render_header(current_page="dashboard"):
     
     # 1. Fetch User Info
     user_name = st.session_state.get('full_name', 'Guest User')
+    st.write(f"DEBUG: user_name = '{user_name}'")
     
     # 2. Layout Configuration (Tighter spacing!)
     col_widths = [5.0, 1.0, 0.5, 0.5, 1.5]

@@ -87,3 +87,15 @@ def is_valid_email(email: str) -> bool:
 def is_strong_password(password: str) -> bool:
     """Ensures password is at least 8 chars long."""
     return len(password) >= 8
+
+def verify_password(plain_text_password: str, hashed_password: str) -> bool:
+    """
+    Checks if the entered password matches the hashed password in the DB.
+    Returns False safely if the stored hash is malformed (e.g. seed/test data).
+    """
+    try:
+        password_bytes = plain_text_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except ValueError:
+        return False

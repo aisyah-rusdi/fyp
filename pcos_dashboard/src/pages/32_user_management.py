@@ -1,5 +1,5 @@
 import streamlit as st
-import mariadb
+import pymysql
 import pandas as pd
 from utils.ui_helpers import load_css
 from components.sidebar import render_sidebar
@@ -39,10 +39,10 @@ def fetch_pending_doctors():
     doctors = []
     if conn:
         try:
-            cur = conn.cursor(dictionary=True)
+            cur = conn.cursor()
             cur.execute(GET_PENDING_DOCTORS)
             doctors = cur.fetchall()
-        except mariadb.Error as e:
+        except pymysql.MySQLError as e:
             st.error(f"Database error: {e}")
         finally:
             conn.close()
@@ -53,10 +53,10 @@ def fetch_all_users():
     users = []
     if conn:
         try:
-            cur = conn.cursor(dictionary=True)
+            cur = conn.cursor()
             cur.execute(GET_ALL_USERS)
             users = cur.fetchall()
-        except mariadb.Error as e:
+        except pymysql.MySQLError as e:
             st.error(f"Database error: {e}")
         finally:
             conn.close()
@@ -70,7 +70,7 @@ def change_user_status(target_user_id, new_status, user_name):
             cur.execute(UPDATE_USER_STATUS, (new_status, target_user_id))
             conn.commit()
             st.toast(f"✅ {user_name} is now {new_status.upper()}!")
-        except mariadb.Error as e:
+        except pymysql.MySQLError as e:
             st.error(f"Error updating status: {e}")
         finally:
             conn.close()

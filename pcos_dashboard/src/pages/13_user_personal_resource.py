@@ -1,5 +1,5 @@
 import streamlit as st
-import mariadb
+import pymysql
 import requests
 import math
 from utils.ui_helpers import load_css
@@ -114,7 +114,7 @@ saved_articles_list = [] # Keep full rows for the Bookmarked tab
 conn = get_connection()
 if conn:
     try:
-        cur = conn.cursor(dictionary=True)
+        cur = conn.cursor()
         
         # 1. Get Risk Level
         cur.execute(GET_USER_PREDICTION_HISTORY, (user_id,))
@@ -128,7 +128,7 @@ if conn:
         for row in saved_articles_list:
             saved_articles_dict[row['article_title']] = row['saved_id']
             
-    except mariadb.Error as e:
+    except pymysql.MySQLError as e:
         st.error(f"Database error: {e}")
     finally:
         conn.close()
